@@ -5,11 +5,14 @@ on:
     branches:
       - main
       - fideonpartner-publish
-  workflow_dispatch: # Permite acionar o workflow manualmente
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      KUBECONFIG: ~/.kube/config
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -20,17 +23,20 @@ jobs:
           echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
           chmod 600 ~/.kube/config
 
+      - name: Verificar conexão com cluster
+        run: kubectl cluster-info
+
       - name: Deploy Kubernetes Manifests
         run: |
           kubectl apply -f k8s/base/ --validate=false
-          kubectl apply -f k8s/security/
-          kubectl apply -f k8s/monitoring/prometheus-namespace.yaml
-          kubectl apply -f k8s/monitoring/prometheus-rbac.yaml
-          kubectl apply -f k8s/monitoring/prometheus-config.yaml
-          kubectl apply -f k8s/monitoring/prometheus-deployment.yaml
-          kubectl apply -f k8s/monitoring/prometheus-service.yaml
-          kubectl apply -f k8s/monitoring/grafana-deployment.yaml
-          kubectl apply -f k8s/monitoring/grafana-service.yaml
+          kubectl apply -f k8s/security/ --validate=false
+          kubectl apply -f k8s/monitoring/prometheus-namespace.yaml --validate=false
+          kubectl apply -f k8s/monitoring/prometheus-rbac.yaml --validate=false
+          kubectl apply -f k8s/monitoring/prometheus-config.yaml --validate=false
+          kubectl apply -f k8s/monitoring/prometheus-deployment.yaml --validate=false
+          kubectl apply -f k8s/monitoring/prometheus-service.yaml --validate=false
+          kubectl apply -f k8s/monitoring/grafana-deployment.yaml --validate=false
+          kubectl apply -f k8s/monitoring/grafana-service.yaml --validate=false
 
       - name: Install Loki with Helm
         run: |
