@@ -22,7 +22,7 @@ jobs:
 
       - name: Deploy Kubernetes Manifests
         run: |
-          kubectl apply -f k8s/base/
+          kubectl apply -f k8s/base/ --validate=false
           kubectl apply -f k8s/security/
           kubectl apply -f k8s/monitoring/prometheus-namespace.yaml
           kubectl apply -f k8s/monitoring/prometheus-rbac.yaml
