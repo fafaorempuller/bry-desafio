@@ -1,11 +1,17 @@
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: whoami-deny-all
+  name: whoami-allow-ingress
+  namespace: sre
 spec:
   podSelector:
     matchLabels:
       app: whoami
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector: {}
+      ports:
+        - protocol: TCP
+          port: 80
