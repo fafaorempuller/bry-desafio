@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fideonpartner-publish
   workflow_dispatch: # Permite acionar o workflow manualmente
 
 jobs:
