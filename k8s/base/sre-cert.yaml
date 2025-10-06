@@ -1,0 +1,13 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: sre-cert
+  namespace: sre
+spec:
+  secretName: sre-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  commonName: whoami.172-24-0-241.nip.io
+  dnsNames:
+    - whoami.172-24-0-241.nip.io

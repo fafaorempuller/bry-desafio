@@ -1,0 +1,44 @@
+name: Deploy to K3s Cluster
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Permite acionar o workflow manualmente
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Deploy Kubernetes Manifests
+        run: |
+          kubectl apply -f k8s/base/
+          kubectl apply -f k8s/security/
+          kubectl apply -f k8s/monitoring/prometheus-namespace.yaml
+          kubectl apply -f k8s/monitoring/prometheus-rbac.yaml
+          kubectl apply -f k8s/monitoring/prometheus-config.yaml
+          kubectl apply -f k8s/monitoring/prometheus-deployment.yaml
+          kubectl apply -f k8s/monitoring/prometheus-service.yaml
+          kubectl apply -f k8s/monitoring/grafana-deployment.yaml
+          kubectl apply -f k8s/monitoring/grafana-service.yaml
+
+      - name: Install Loki with Helm
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts
+          helm repo update
+          helm upgrade --install loki grafana/loki-stack --namespace monitoring -f k8s/monitoring/loki-helm-values.yaml
+
+      - name: Install Jaeger with Helm
+        run: |
+          helm repo add jaegertracing https://jaegertracing.github.io/helm-charts
+          helm repo update
+          helm install jaeger jaegertracing/jaeger --namespace monitoring -f k8s/monitoring/jaeger-helm-values.yaml
